@@ -3,6 +3,7 @@ import {Button, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter,Label, Inp
     from 'reactstrap';
 
 import NavLog from "./NavLog";
+import Carousel from "../../components/Carousel";
 export default class Login extends Component{
     constructor(props){
         super(props)
@@ -24,7 +25,7 @@ export default class Login extends Component{
     signIn = () =>{
         const data = JSON.stringify({email: this.email, password:this.password});
         //const data = JSON.stringify({email: "admin-pract@bbva.com", password:"admin12345"});
-        console.log(data);
+        console.log('data:', data);
     
         const requestInfo = {
             method: 'POST',
@@ -33,17 +34,22 @@ export default class Login extends Component{
                 'Content-Type': 'application/json'
             }),
         };
-        
+        console.log('holi')
         fetch('http://localhost:4000/users/authenticate', requestInfo)
         .then(response =>{
             if(response.ok){
+                console.log("after response: ", response.json)
                 return response.json()
             }
             throw new Error("Usuario y/o contraseña invalido");
         })
         .then(response=> {
+            console.log("username: "+response.data.user.name);
+            localStorage.setItem('name',response.data.user.name);
+            console.log("name:",localStorage.getItem("name"))
             console.log("token: "+response.data.token);
             localStorage.setItem('token',response.data.token);
+            console.log("token:",localStorage.getItem("token"))
             this.navigateToPage('/inicio')
         })
         .catch(e=>{
@@ -54,8 +60,7 @@ export default class Login extends Component{
     render(){
         return(
             <div>
-                <NavLog/>
-
+                <Carousel/>
                 <Modal isOpen={this.state.modalLogin}>
                     <ModalHeader>
                         <h3>Iniciar sesión </h3>
@@ -78,8 +83,8 @@ export default class Login extends Component{
                         </FormGroup>
                     </ModalBody>
                     <ModalFooter>
-                        <Button outline color="info" onClick={()=>this.insertClient()}>Registrarse</Button>                        {"  "}
-                        <Button color="info" onClick={()=>this.signIn}>Entrar</Button>                        {"  "}
+                        <Button outline color="info" onClick={()=>this.navigateToPage('/registro')}>Registrarse</Button>                        {"  "}
+                        <Button color="info" onClick={()=>this.signIn()}>Entrar</Button>                        {"  "}
                         <Button outline color="danger" onClick={()=>this.hideModalLogin()}>Cancelar</Button>
                     </ModalFooter>
                 </Modal>                   

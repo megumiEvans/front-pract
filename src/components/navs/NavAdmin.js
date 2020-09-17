@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {Collapse, Navbar, NavbarToggler, NavbarBrand, Nav, NavItem, NavLink, UncontrolledDropdown, DropdownToggle,
   DropdownMenu, DropdownItem, NavbarText } from 'reactstrap';
 
-const NavLog = (props) => {
+const NavAdmin = (props) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggle = () => setIsOpen(!isOpen);
@@ -16,12 +16,14 @@ const NavLog = (props) => {
         <Collapse isOpen={isOpen} navbar>
           <Nav  navbar>
             <NavItem >
-              <NavLink style={{color: 'white'}} href="/">Iniciar Sesión</NavLink>
+              <NavLink style={{color: 'white'}} href="/users">Usuarios</NavLink>
             </NavItem>
             <NavItem >
-              <NavLink style={{color: 'white'}} href="/registro">Registrarse</NavLink>
+              <NavLink style={{color: 'white'}} href="/adminmov">Movimientos</NavLink>
             </NavItem>
-            
+            <NavItem >
+              <NavLink style={{color: 'white'}} href="/divisas">Divisas</NavLink>
+            </NavItem>
           </Nav>          
         </Collapse>
       </Navbar>
@@ -29,4 +31,4 @@ const NavLog = (props) => {
   );
 }
 
-export default NavLog;
+export default NavAdmin;

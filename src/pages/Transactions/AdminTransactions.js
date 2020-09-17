@@ -2,8 +2,8 @@ import React, {Component} from 'react';
 import {Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter,Label, Input} 
     from 'reactstrap';
 
-
-const data=[
+/*
+let data=[
     {_id: {$oid: "5f0642288198de684e3e4b70"},idCliente: 51, nombre: "Denisse", apellido: "Rodriguez Ibañez", cuenta: 123456, listado:[
         {   fecha: "08/07/2020", importe: 33.95, tipo: "Retiro ATM"},
         {   fecha: "07/07/2020", importe: 12.95, tipo: "Depósito Ventanilla"}
@@ -13,30 +13,36 @@ const data=[
         {   fecha: "18/07/2020", importe: 9309.34, tipo: "Deposito nomina"},
         {   fecha: "28/07/2020", importe: 133.95, tipo: "Retiro ATM"},
     ]},       
-];
+];*/
 
-export default class TransactClients extends Component
+let data=[]
+
+export default class AdminTransactions extends Component
 {
     constructor(props) {
         super(props);
         this.state = {
             data: data,
-            numMovsAdd:0,
+            numMovsAdd: 0,
             movimientos:{fecha: '', importe: 0, tipo: ''},
             idsObj:{idFecha: '', idImporte: '', idTipo:''},
             idsArray:[],
             listado:[],
             form: {
-                idCliente:'',
+                _id:'',
+                idcliente:'',
                 nombre:'',
                 apellido:'',
                 cuenta:'',
                 listado:[]
             },
             modalInsert:false,
-            modalEdit:false
+            modalEdit:false,
+            message:'',
+            messageError:''
         }
      }
+
     componentDidMount() {
         this.onFetchUsers();
     }
@@ -54,62 +60,30 @@ export default class TransactClients extends Component
             fetch(url,requestInfo)
             .then(response => response.json())// Se obtiene la respuesta y se le indica a Javascript que lo transforme a un JSON
                 .then(response => { //Ya que fue transformado se transfiere a la variable currency para su manipulacion
-                    console.log("response.json: ", response)
+                    //console.log("response.json: ", response)
+                    //this.mapJsonToData(response)
                     response.map(item => {
-                        let keys=Object.keys(item)
-                        //console.log("Object.keys(items): ", keys)
-                        let id=null;
-                        if(keys.includes("_id"))
-                        {
-                            id=item._id;
-                        }
-                        //console.log("id: ", id)
-
-                        let idCliente=null;  
-                        if(keys.includes("idcliente"))
-                        {
-                            idCliente=item.idcliente;
-                        }
-                        //console.log("idCliente: ", idCliente)
-
-                        let nombre=null; 
-                        if(keys.includes("nombre"))
-                        {
-                            nombre=item.nombre;
-                        }
-                        //console.log("nombre: ", nombre);
-
-                        let apellido=null;
-                        if(keys.includes("apellido"))
-                        {
-                            apellido=item.apellido;
-                        }
-                        ///console.log("apellido: ", apellido)
-
-                        let cuenta=null;
-                        if(keys.includes("cuenta"))
-                        {
-                            cuenta=item.cuenta;
-                        }
-                        //console.log("cuenta: ", cuenta)
-
-                        let listado=null;
-                        if(keys.includes("listado"))
-                        {
-                            listado=item.listado;
-                        }
-                        ///console.log("listado: ", listado)
-                        let row = {id:id, idCliente: idCliente, nombre: nombre, apellido: apellido, cuenta: cuenta, listado:listado}
-                        
+                        this.mapData(item)
                     })
-                    
-
+                    this.setState({data:data})
+                    console.log("data: ", data);
                 })
                 .catch(err=>{
                     console.error(err);
                 }) 
 
     }
+    
+    showModalInsert=()=>{
+        this.setState({modalInsert:true});
+    }
+
+    hideModalInsert=()=>{
+        this.setState({modalInsert:false},()=>{
+            this.resetState();
+        });
+    }
+
     resetState=()=>{
         this.setState({
             numMovsAdd:0,
@@ -118,42 +92,61 @@ export default class TransactClients extends Component
             idsArray:[],
             listado:[],
             form: {
-                idCliente:'',
+                _id:'',
+                idcliente:'',
                 nombre:'',
                 apellido:'',
                 cuenta:'',
                 listado:[]
             },
             modalInsert:false,
-            modalEdit:false
-        });
-        console.log('numMovsAdd:', this.state.numMovsAdd, 'idsObj: ',  this.state.idsObj,
-            'idsArray: ',  this.state.idsArray, 'listado: ',  this.state.listado, 'form: ',  this.state.form );
-    }
-
-    handleChangeList=(e)=>{
-        //console.log(e.target.name+" | "+e.target.value);
-        if(e.target.type=="number")
-        {
-            //console.log("Es un número")
-            let val=parseFloat(e.target.value)
-            //console.log((typeof val))
-            this.setState({
-                movimientos:{
-                    ...this.state.movimientos,
-                    [e.target.name]:val,
-                }
-            })
-        }
-        else{
-            this.setState({
-                movimientos:{
-                    ...this.state.movimientos,
-                    [e.target.name]:e.target.value,
-                }
-            }) 
-        }
-        //console.log("movimientos:",this.state.movimientos);
+            modalEdit:false,
+            
+        }, ()=>{console.log("se reseteo todo: "+'numMovsAdd:', this.state.numMovsAdd, 'idsObj: ',  this.state.idsObj,
+                            'idsArray: ',  this.state.idsArray, 'listado: ',  this.state.listado, 'form: ',  this.state.form );
+                            });
+   }
+   
+    addTransaction=()=>{
+        this.setState({
+            numMovsAdd: this.state.numMovsAdd+1,
+        }, ()=>{
+            console.log("this.state.numMovsAdd: ", this.state.numMovsAdd)
+            if(this.state.numMovsAdd>1){
+                console.log("** this.state.numMovsAdd: ", this.state.numMovsAdd)
+                this.setState({
+                       listado: [ ...this.state.listado, this.state.movimientos ],
+                       idsObj:{idFecha: 'dateMov'+this.state.numMovsAdd,
+                                idImporte: 'amount'+this.state.numMovsAdd, 
+                                idTipo:'typeTrans'+this.state.numMovsAdd}, 
+                            },
+                    ()=>{
+                        this.setState({idsArray: this.state.idsArray.concat([this.state.idsObj])},
+                       ()=> {
+                             //console.log("")
+                             //console.log("this.state.idsArray: ",this.state.idsArray)
+                             console.log(">>>this.state.listado: ",this.state.listado)
+                    });
+                                
+                })
+            }else{
+                this.setState({
+                        idsObj:{idFecha: 'dateMov'+this.state.numMovsAdd,
+                                idImporte: 'amount'+this.state.numMovsAdd, 
+                                idTipo:'typeTrans'+this.state.numMovsAdd}, 
+                    },
+                    ()=>{
+                        this.setState({idsArray: this.state.idsArray.concat([this.state.idsObj])},
+                        ()=> {
+                            //console.log("")
+                            console.log(" ... this.state.idsArray: ",this.state.idsArray)
+                            console.log("... this.state.listado: ",this.state.listado)
+                    });
+                                
+                })
+            }
+        })
+       
     }
 
     handleChange=(e)=>{
@@ -181,14 +174,157 @@ export default class TransactClients extends Component
         //console.log("form: ",this.state.form);
     }
 
-    showModalInsert=()=>{
-        this.setState({modalInsert:true});
-    }
-
     hideModalInsert=()=>{
         this.setState({modalInsert:false},()=>{
             this.resetState();
         });
+    }
+
+    handleChangeList=(e)=>{
+        //console.log(e.target.name+" | "+e.target.value);
+        if(e.target.type=="number")
+        {
+            let val=parseFloat(e.target.value)
+            //console.log((typeof val))
+            this.setState({
+                movimientos:{
+                    ...this.state.movimientos,
+                    [e.target.name]:val,
+                }
+            })
+        }
+        else{
+            this.setState({
+                movimientos:{
+                    ...this.state.movimientos,
+                    [e.target.name]:e.target.value,
+                }
+            }) 
+        }
+        //console.log("movimientos:",this.state.movimientos);
+    }
+
+    onFetchAddUser=(data)=>{
+        console.log("data: ",data)
+        let url='http://localhost:4000/clients/movements';
+            const requestInfo ={
+                method:'POST',
+                body:data,
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'token': localStorage.getItem('token')
+                })
+            };
+
+            fetch(url,requestInfo)
+            //.then(response => response.json())
+            .then((response) => {
+                if(response.ok){
+                    console.log("Success")
+                    this.setState({message:'Registro añadido correctamente'})
+                }
+                else{
+                    this.setState({messageError:'Error al añadir registro '})
+                }
+
+                return response.json()
+            })
+            .then(response=>{
+                {
+                    console.log("**** response:", response)
+                    this.mapData(response)
+                    this.hideModalInsert()
+                }
+            })
+            
+            .catch(err=>{
+                console.log(err);
+            })
+    }
+
+    mapData=(json)=>{
+        data.push(json);
+        console.log("data pushed: ", data)
+        this.setState({data: data}, ()=>{
+            console.log('data update: ', data)
+        })
+    }
+        
+    insertClient=()=>{
+        this.setState({message:''},()=>{})
+        //console.log(">>>nums: ",this.state.numMovsAdd);
+        //console.log(">>>:this.state.listado ",this.state.listado);
+        //console.log(">>>:this.state.movimientos ",this.state.movimientos);
+        let listP=[]
+
+        if(this.state.numMovsAdd>0){
+            //console.log("Se ingresaron transacciones")
+            listP=this.state.listado
+            listP.push(this.state.movimientos)
+        }
+        console.log("listP: ", listP)
+        let objectToPost={
+            idcliente: this.state.form.idcliente,
+            nombre: this.state.form.nombre,
+            apellido: this.state.form.apellido,
+            cuenta: this.state.form.cuenta,
+            listado: listP
+        }
+        let jsonBody = JSON.stringify(objectToPost);
+        //console.log("objectToPost", jsonBody, " - ", typeof jsonBody)
+        let obj=this.onFetchAddUser(jsonBody);   
+    }
+
+    onDeleteRegister=(dato)=>{
+        console.log("dato: ",dato)
+        let jsonBody = JSON.stringify(dato);
+        let id=dato._id.$oid;
+        let url='http://localhost:4000/clients/movements/'+id;
+            const requestInfo ={
+                method:'DELETE',
+                body:jsonBody,
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'token': localStorage.getItem('token')
+                })
+            };
+            console.log("url: ",url)
+            
+            fetch(url,requestInfo)
+            //.then(response => response.json())
+            .then((response) => {
+                if(response.ok){
+                    console.log("Success")
+                    this.setState({message:'Registro eliminado correctamente'})
+                }
+                else{
+                    this.setState({messageError:'Error al eliminar registro'})
+                }
+
+                return response.json()
+            })
+            .then(response=>{
+                {
+                   this.deleteRegister(response);
+                   console.log("**** response:", response)
+                }
+            })
+            .catch(err=>{
+                console.log(err);
+            })
+        }
+
+    deleteRegister=(dato)=>{
+        var contador=0;
+        var lista = this.state.data;
+        lista.map((registro)=>{
+            if(registro.idcliente==dato.idcliente){
+                lista.splice(contador,1);
+            }
+            contador++;
+        });
+        this.setState({data:lista})
+        data=lista;
     }
 
     showModalEdit=(registro)=>{
@@ -201,134 +337,96 @@ export default class TransactClients extends Component
         });
     }
 
-    addTransaction=()=>{
-        console.log("this.state.numMovsAdd: ",this.state.numMovsAdd);
-        if(this.state.numMovsAdd!==0){
-            //this.setState({listado: this.state.listado.concat([this.state.movimientos])}, ()=> {console.log(">>>this.state.listado: ",this.state.listado)});
-            this.setState({
-                            listado: [ ...this.state.listado, this.state.movimientos ],
-                            numMovsAdd: this.state.numMovsAdd+1, 
-                            idsObj:{idFecha: 'dateMov'+this.state.numMovsAdd,
-                                    idImporte: 'amount'+this.state.numMovsAdd, 
-                                    idTipo:'typeTrans'+this.state.numMovsAdd}, 
-                                    },
-                        ()=>{
-                            this.setState({idsArray: this.state.idsArray.concat([this.state.idsObj])},
-                            ()=> {
-                                console.log("")
-                                   // console.log("this.state.idsArray: ",this.state.idsArray)
-                                    //console.log(">>>this.state.listado: ",this.state.listado)
-                                });
-                            
-            })
-        }
-        else{
-            this.setState({
-                numMovsAdd: this.state.numMovsAdd+1, 
-                idsObj:{idFecha: 'dateMov'+this.state.numMovsAdd,
-                        idImporte: 'amount'+this.state.numMovsAdd, 
-                        idTipo:'typeTrans'+this.state.numMovsAdd}, 
-                        },
-            ()=>{
-                this.setState({idsArray: this.state.idsArray.concat([this.state.idsObj])},
-                ()=> {
-                        console.log("")
-                        //console.log("this.state.idsArray: ",this.state.idsArray)
-                    });
-                
-            })
-        }
-        
-    }
-    insertClient(){
-        let valorNuevo={...this.state.form};
-        if(this.state.numMovsAdd!==0){
-            //console.log("holi",this.state.numMovsAdd)
-            //this.setState({listado: this.state.listado.concat([this.state.movimientos])}, 
-            this.setState({listado: [ ...this.state.listado, this.state.movimientos ] },
-            ()=> {
-                //console.log(">>>this.state.listado: ",this.state.listado)
-                let listMovs=this.state.listado;
-                //console.log("valorNuevo: ", valorNuevo)
-                //console.log("listMovs: ", listMovs)
-                valorNuevo.listado=listMovs;
-                let values=this.state.data;      
-                values.push(valorNuevo);
-                this.setState({data:values},()=>{
-                    this.resetState();
-                });
-                console.log("values: ", values, "  data:",this.state.data)
-            }); 
-        }
-        else{
-            let values=this.state.data;      
-            values.push(valorNuevo);
-             this.setState({data:values},()=>{
-                 this.resetState();
-             });
-        }
-    }
-    
     editField=(field)=>{
-        let contador=0;
-        let listData=this.state.data;
-        console.log('this.state.numMovsAdd: ',this.state.numMovsAdd);
-        if(this.state.numMovsAdd>0){
-                this.setState({listado: [ ...this.state.listado, this.state.movimientos ] },
-                ()=>{
-                    listData.map((register)=>{ //basicamente se compara data con form para encontrar indice a modificar
-                        //console.log("~ ~ listData[contador].listado: ", listData[contador].listado);
-                        //console.log("field.idCliente: ", field.idCliente, " register.idCliente: ", register.idCliente)
-                        if(field.idCliente==register.idCliente){
-                            listData[contador].nombre=field.nombre;
-                            listData[contador].apellido=field.apellido;
-                            listData[contador].cuenta=field.cuenta;
-                            if(listData[contador].listado===null){
-                                listData[contador].listado=this.state.listado;
-                            }
-                            else{
-                                Array.prototype.push.apply(listData[contador].listado,this.state.listado);
-                            }
-                            //console.log("---- listData[contador].listado: ", listData[contador].listado);
-                            //console.log("this.state.listado: ", this.state.listado);
-                        }
-                        contador++;
-                    });
-
-                })  
+        console.log("field: ", field)
+        let list = []
+        let listadoFull=[]
+        if(this.state.movimientos.fecha!==''){ // si se registraron movimientos
+            if (this.state.numMovsAdd>1) //si hay más de un nuevo registro
+            {
+                console.log("Más de un movimiento ")
+                list=[ ...this.state.listado, this.state.movimientos ]
+                console.log("list: ", list,"listado: ", this.state.listado,"movimientos: ", this.state.movimientos)
+            }
+            else{
+                console.log("Solo un movimiento ")
+                list.push(this.state.movimientos) //solo se regstro un movimiento
+                console.log("list: ", list,"listado: ", this.state.listado,"movimientos: ", this.state.movimientos)
+            }
         }
         else{
-            listData.map((register)=>{ //basicamente se compara data con form para encontrar indice a modificar
-                //console.log("field.idCliente: ", field.idCliente, " register.idCliente: ", register.idCliente)
-                    if(field.idCliente==register.idCliente){
-                        listData[contador].nombre=field.nombre;
-                        listData[contador].apellido=field.apellido;
-                        listData[contador].cuenta=field.cuenta;
-                        console.log("***** listData[contador].listado: ", listData[contador].listado);
-                        console.log("this.state.listado: ", this.state.listado);
+            console.log("sin nuevos movimientos")
+        }
+        listadoFull=this.state.form.listado.concat(list)
+        console.log("listadoFull: ", listadoFull)
+        //object to send fetch
+        let objectToFetch=field;
+        objectToFetch.listado=listadoFull;
+        console.log(objectToFetch);
+        this.onFetchEdit(objectToFetch);
+    }      
+    
+    onFetchEdit=(field)=>{
+        let id=field._id.$oid;
+        console.log("field to edit: ", field)
+        let jsonObj = {
+            
+            idcliente: field.idcliente,
+            nombre: field.nombre,
+            apellido: field.apellido,
+            cuenta: field.cuenta,
+            listado: field.listado,
+            userId: field.userId,
+        }
+        let jsonBody = JSON.stringify(jsonObj);
+        console.log("jsonBody: ", jsonBody)
+        let url='http://localhost:4000/clients/movements/'+id;
+            const requestInfo ={
+                method:'PUT',
+                body:jsonBody,
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'token': localStorage.getItem('token')
+                })
+            };
+            console.log("url: ",url)
+            
+            fetch(url,requestInfo)
+            //.then(response => response.json())
+            .then((response) => {
+                if(response.ok){
+                    console.log("Success")
+                    this.setState({message:'Registro editado correctamente'})
+                }
+                else{
+                    this.setState({messageError:'Error al editar registro'})
+                }
+
+                return response.json()
+            })
+            .then(response=>{
+                let contador=0
+                data.map((register)=>{ 
+                    if(field.idcliente==register.idcliente){
+                        data[contador]._id=field._id
+                        data[contador].idcliente=field.idcliente
+                        data[contador].nombre=field.nombre
+                        data[contador].apellido=field.apellido
+                        data[contador].cuenta=field.cuenta
+                        data[contador].listado=field.listado
+                        data[contador].userId=field.userId
                     }
                     contador++;
-                });
-        }
-        //console.log('field:',listData);
-        this.setState({data:listData}, ()=>{
-            console.log('data:',this.state.data);
-            this.resetState();
-        })
-    }
+                })
 
-    deleteRegister=(dato)=>{
-        
-            var contador=0;
-            var lista = this.state.data;
-            lista.map((registro)=>{
-                if(registro.idCliente==dato.idCliente){
-                    lista.splice(contador,1);
-                }
-                contador++;
-            });
-            this.setState({data:lista})
-        
+                this.setState({data:data})
+                this.hideModalEdit()
+                console.log("**** response:", response)
+                
+            })
+            .catch(err=>{
+                console.log(err);
+            })
     }
 
     render()
@@ -341,6 +439,20 @@ export default class TransactClients extends Component
                     <br/><br/>
                     <Button color="info" onClick={()=>this.showModalInsert()}>Insertar Cliente</Button>
                     <br/><br/>
+                    {
+                                this.state.message !== ''?(
+                                    <div className="alert alert-success text-center" role="alert">
+                                        {this.state.message}
+                                    </div>
+                                ):''
+                    }
+                    {
+                                this.state.messageError !== ''?(
+                                    <div className="alert alert-danger text-center" role="alert">
+                                        {this.state.message}
+                                    </div>
+                                ):''
+                        }
                     <Table striped>
                         <thead>
                             <tr>
@@ -355,7 +467,7 @@ export default class TransactClients extends Component
                         <tbody>
                             { this.state.data.map((elemento)=>(
                                     <tr>
-                                        <td>{elemento.idCliente}</td>
+                                        <td>{elemento.idcliente}</td>
                                         <td>{elemento.nombre}</td>
                                         <td>{elemento.apellido}</td>
                                         <td>{elemento.cuenta}</td>
@@ -376,7 +488,7 @@ export default class TransactClients extends Component
                                         </td>
                                         <td>
                                             <Button color="secondary" onClick={()=>this.showModalEdit(elemento)}>Editar</Button> {"  "}
-                                            <Button outline color="danger" onClick={()=>this.deleteRegister(elemento)}>Eliminar</Button>
+                                            <Button outline color="danger" onClick={()=>this.onDeleteRegister(elemento)}>Eliminar</Button>
                                         </td>
                                     </tr>                                
                                 )
@@ -389,9 +501,10 @@ export default class TransactClients extends Component
                         <h3>Insertar Cliente</h3>
                     </ModalHeader>
                     <ModalBody>
+                        
                         <FormGroup>
-                            <label>idCliente:</label>
-                            <input className="form-control" name="idCliente" type="number" onChange={this.handleChange}></input>
+                            <label>idcliente:</label>
+                            <input className="form-control" name="idcliente" type="number" onChange={this.handleChange}></input>
                         </FormGroup>
                         <FormGroup>
                             <label>Nombre:</label>
@@ -407,13 +520,14 @@ export default class TransactClients extends Component
                         </FormGroup>
                         <FormGroup>
                             <legend>Movimientos</legend>
-                            <Button color="secondary" size="sm" onClick={()=>this.addTransaction()}>Añadir otro movimiento </Button>
+                            <Button color="secondary" size="sm" onClick={()=>this.addTransaction()}>Añadir movimiento </Button>
                            
                             {<ul>							
                                 {
                                     this.state.idsArray.map((rowIds)=>(
                                             <li>
-                                                {rowIds.idFecha}, {rowIds.idImporte}, {rowIds.idTipo}
+                                                {/*{rowIds.idFecha}, {rowIds.idImporte}, {rowIds.idTipo}*/}
+                                                <h4>Nuevo Movimiento </h4>
                                                 <FormGroup>
                                                     <Label for="dateMov">Fecha:</Label>
                                                     <Input type="date" name="fecha" id={rowIds.idFecha} placeholder="" onChange={this.handleChangeList}/>
@@ -447,6 +561,7 @@ export default class TransactClients extends Component
                         <Button outline color="danger" onClick={()=>this.hideModalInsert()}>Cancelar</Button>
                     </ModalFooter>
                 </Modal>
+                
                 <Modal isOpen={this.state.modalEdit}>
                     <ModalHeader>
                         <h3>Editar Cliente</h3>
@@ -454,7 +569,7 @@ export default class TransactClients extends Component
                     <ModalBody>
                         <FormGroup>
                             <label>idCliente:</label>
-                            <input className="form-control" name="idCliente" type="number" value={this.state.form.idCliente}></input>
+                            <input className="form-control" name="idcliente" type="number" value={this.state.form.idcliente}></input>
                         </FormGroup>
                         <FormGroup>
                             <label>Nombre:</label>
@@ -509,8 +624,6 @@ export default class TransactClients extends Component
                         </FormGroup>
                     </ModalBody>
                     <ModalFooter>
-                        {/*<Button color="info" onClick={()=>this.editField(this.state.form)}>Editar</Button>                        {"  "}
-                        */}
                         <Button color="info" onClick={()=>this.editField(this.state.form)}>Editar</Button>  
                         <Button outline color="danger" onClick={()=>this.hideModalEdit()}>Cancelar</Button>
                     </ModalFooter>

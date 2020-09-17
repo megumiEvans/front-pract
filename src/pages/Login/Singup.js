@@ -11,10 +11,13 @@ export default class Login extends Component{
             message: props.state?props.location.state.message:'',
             modalSingup:true,
             messageSuccess: '',
-            disable: "true"
+            messageRedButton: "Cancelar",
+            disabled: false
+
         };
         this.navigateToPage =  this.navigateToPage.bind(this);
     }
+   
     navigateToPage = (path) => {
         console.log('Navigate to path ' + path);
         this.props.history.push(path);
@@ -53,13 +56,11 @@ export default class Login extends Component{
     }
 
     success=(mens)=>{
-        this.setState({disable:"true", messageSuccess: mens})
+        this.setState({disabled:true, messageSuccess: mens})
     }
     render(){
         return(
             <div>
-                <NavLog/>
-
                 <Modal isOpen={this.state.modalSingup}>
                     <ModalHeader>
                         <h3>Registrarse </h3>
@@ -97,7 +98,8 @@ export default class Login extends Component{
                         </FormGroup>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="info" onClick={()=>this.signUp()}>Registrarse</Button>                        {"  "}
+                        <Button  color="info" onClick={()=>this.signUp()} disabled={this.state.disabled}>Registrarse</Button>                        {"  "}
+                        <Button outline color="info" onClick={()=>this.navigateToPage('/')}>Entrar</Button>
                         <Button outline color="danger" onClick={()=>this.hideModal()} >Cancelar</Button>
                     </ModalFooter>
                 </Modal>                   
