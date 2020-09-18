@@ -21,23 +21,24 @@ class Selector extends Component {
                 
             )
         }
-        else if (localStorage.getItem("name")!== "admin") {
+        else if (localStorage.getItem("name")=== null) {
             return (
                 <div>
-                    {console.log('no admin')}
-                    <NavLogged/>
-                 
-                </div>
-                
+                    <NavLog/>
+                    
+                </div>   
             )
         }
         
         else{
             return (
                 <div>
-                    <NavLog/>
+                    {console.log('no admin')}
+                    
+                    <NavLogged/>
                     <h2>Bienvenido(a) {user}</h2>
                 </div>
+                
             )
         }
     }
