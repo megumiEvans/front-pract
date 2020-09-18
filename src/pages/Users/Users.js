@@ -56,6 +56,7 @@ export default class Users extends Component
     mapData=(json)=>{
         let obj={
             id:json.id,
+            idUser:(typeof json.idUser!='undefined'?json.idUser:''),
             name:json.name,
             lastname:json.lastname,
             email:json.email
@@ -67,40 +68,23 @@ export default class Users extends Component
         })
     }
 
-    showModalInsert=()=>{
-        this.setState({modalInsert:true});
-    }
-
-    hideModalInsert=()=>{
-        this.setState({modalInsert:false},()=>{
-            this.resetState();
-        });
-    }
-
     resetState=()=>{
         this.setState({
-            numMovsAdd:0,
-            movimientos:{fecha: '', importe: 0, tipo: ''},
-            idsObj:{idFecha: '', idImporte: '', idTipo:''},
-            idsArray:[],
-            listado:[],
             form: {
                 _id:'',
                 idUser:'',
                 name:'',
                 lastname:'',
-                email:'',
-                password:''
+                email:''
             },
             modalInsert:false,
             modalEdit:false,
-            
-        }, ()=>{console.log("se reseteo todo: "+'numMovsAdd:', this.state.numMovsAdd, 'idsObj: ',  this.state.idsObj,
-                            'idsArray: ',  this.state.idsArray, 'listado: ',  this.state.listado, 'form: ',  this.state.form );
+            message:'',
+            messageError:''
+        }, ()=>{console.log("se reseteo todo: ");
                             });
    }
    
-
     handleChange=(e)=>{
         //console.log(e.target.name+" | "+e.target.type+" | "+e.target.value+" |"+(typeof e.target.value));
         if(e.target.type=="number")
@@ -124,12 +108,6 @@ export default class Users extends Component
             })
         }
         //console.log("form: ",this.state.form);
-    }
-
-    hideModalInsert=()=>{
-        this.setState({modalInsert:false},()=>{
-            this.resetState();
-        });
     }
 
     onFetchAddUser=(data)=>{
@@ -170,35 +148,11 @@ export default class Users extends Component
             })
     }
 
-
-        
-    insertClient=()=>{
-        this.setState({message:''},()=>{})
-        let listP=[]
-
-        if(this.state.numMovsAdd>0){
-            //console.log("Se ingresaron transacciones")
-            listP=this.state.listado
-            listP.push(this.state.movimientos)
-        }
-        console.log("listP: ", listP)
-        let objectToPost={
-            idcliente: this.state.form.idcliente,
-            nombre: this.state.form.nombre,
-            apellido: this.state.form.apellido,
-            cuenta: this.state.form.cuenta,
-            listado: listP
-        }
-        let jsonBody = JSON.stringify(objectToPost);
-        //console.log("objectToPost", jsonBody, " - ", typeof jsonBody)
-        let obj=this.onFetchAddUser(jsonBody);   
-    }
-
     onDeleteRegister=(dato)=>{
         console.log("dato: ",dato)
         let jsonBody = JSON.stringify(dato);
-        let id=dato._id.$oid;
-        let url='http://localhost:4000/clients/movements/'+id;
+        let id=dato.id;
+        let url='http://localhost:4000/users/'+id;
             const requestInfo ={
                 method:'DELETE',
                 body:jsonBody,
@@ -237,7 +191,8 @@ export default class Users extends Component
         var contador=0;
         var lista = this.state.data;
         lista.map((registro)=>{
-            if(registro.idcliente==dato.idcliente){
+            console.log("registro.id: ", registro.id, "dato.id: ", dato.id)
+            if(registro.id==dato.id){
                 lista.splice(contador,1);
             }
             contador++;
@@ -257,32 +212,8 @@ export default class Users extends Component
     }
 
     editField=(field)=>{
-        console.log("field: ", field)
-        let list = []
-        let listadoFull=[]
-        if(this.state.movimientos.fecha!==''){ // si se registraron movimientos
-            if (this.state.numMovsAdd>1) //si hay más de un nuevo registro
-            {
-                console.log("Más de un movimiento ")
-                list=[ ...this.state.listado, this.state.movimientos ]
-                console.log("list: ", list,"listado: ", this.state.listado,"movimientos: ", this.state.movimientos)
-            }
-            else{
-                console.log("Solo un movimiento ")
-                list.push(this.state.movimientos) //solo se regstro un movimiento
-                console.log("list: ", list,"listado: ", this.state.listado,"movimientos: ", this.state.movimientos)
-            }
-        }
-        else{
-            console.log("sin nuevos movimientos")
-        }
-        listadoFull=this.state.form.listado.concat(list)
-        console.log("listadoFull: ", listadoFull)
-        //object to send fetch
-        let objectToFetch=field;
-        objectToFetch.listado=listadoFull;
-        console.log(objectToFetch);
-        this.onFetchEdit(objectToFetch);
+        this.onFetchEdit(field);
+        console.log("**** response:", field)
     }      
     
     onFetchEdit=(field)=>{
@@ -325,8 +256,8 @@ export default class Users extends Component
                 let contador=0
                 data.map((register)=>{ 
                     if(field.email==register.email){
-                        data[contador]._id=field._id
-                        
+                        data[contador]._id=field.id
+                        data[contador].idUser=field.idUser
                         data[contador].nombre=field.name
                         data[contador].apellido=field.lastname
                         data[contador].cuenta=field.email
@@ -352,7 +283,7 @@ export default class Users extends Component
                     <br/><br/>
                     <h2>Administrar Usuarios</h2>
                     <br/><br/>
-                    <Button color="info" onClick={()=>this.showModalInsert()}>Insertar Cliente</Button>
+                    
                     <br/><br/>
                     {
                                 this.state.message !== ''?(
@@ -371,7 +302,7 @@ export default class Users extends Component
                     <Table striped>
                         <thead>
                             <tr>
-                                
+                                <th>idUsuario</th>
                                 <th>Nombre</th>
                                 <th>Apellidos</th>
                                 <th>Correo</th>
@@ -381,7 +312,7 @@ export default class Users extends Component
                         <tbody>
                             { this.state.data.map((elemento)=>(
                                     <tr>
-                                        
+                                        <td>{elemento.idUser}</td>
                                         <td>{elemento.name}</td>
                                         <td>{elemento.lastname}</td>
                                         <td>{elemento.email}</td>
@@ -396,38 +327,17 @@ export default class Users extends Component
                         </tbody>
                     </Table>
                 </Container>
-                <Modal isOpen={this.state.modalInsert}>
-                    <ModalHeader>
-                        <h3>Insertar Cliente</h3>
-                    </ModalHeader>
-                    <ModalBody>
-                        
-                        
-                        <FormGroup>
-                            <label>Nombre:</label>
-                            <input className="form-control" name="name" type="text" onChange={this.handleChange}></input>
-                        </FormGroup>
-                        <FormGroup>
-                            <label>Apellidos:</label>
-                            <input className="form-control" name="lastname" type="text" onChange={this.handleChange}></input>
-                        </FormGroup>
-                        <FormGroup>
-                            <label>Cuenta:</label>
-                            <input className="form-control" name="email" type="email" onChange={this.handleChange}></input>
-                        </FormGroup>
-                        
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="info" onClick={()=>this.insertClient()}>Insertar</Button>                        {"  "}
-                        <Button outline color="danger" onClick={()=>this.hideModalInsert()}>Cancelar</Button>
-                    </ModalFooter>
-                </Modal>
                 
                 <Modal isOpen={this.state.modalEdit}>
                     <ModalHeader>
                         <h3>Editar Cliente</h3>
                     </ModalHeader>
                     <ModalBody>
+                        <FormGroup>
+                            <label>idUsuario:</label>
+                            <input className="form-control" name="idUser" type="number" value={this.state.form.idUser}
+                                onChange={this.handleChange}></input>
+                        </FormGroup>
                         
                         <FormGroup>
                             <label>Nombre:</label>

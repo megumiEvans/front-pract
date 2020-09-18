@@ -16,10 +16,13 @@ const NavLogged = (props) => {
         <Collapse isOpen={isOpen} navbar>
           <Nav  navbar>
             <NavItem >
-              <NavLink style={{color: 'white'}} href="/">Movimientos</NavLink>
+              <NavLink style={{color: 'white'}} href="/usersMov">Mis Movimientos</NavLink>
             </NavItem>
             <NavItem >
               <NavLink style={{color: 'white'}} href="/divisas">Divisas</NavLink>
+            </NavItem>
+            <NavItem >
+              <NavLink style={{color: 'white'}} href="/logout">Cerrar Sesión</NavLink>
             </NavItem>
           </Nav>          
         </Collapse>

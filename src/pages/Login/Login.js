@@ -44,10 +44,14 @@ export default class Login extends Component{
             throw new Error("Usuario y/o contraseña invalido");
         })
         .then(response=> {
-            console.log("username: "+response.data.user.name);
+            //console.log("username: "+response.data.user.name);
             localStorage.setItem('name',response.data.user.name);
             console.log("name:",localStorage.getItem("name"))
-            console.log("token: "+response.data.token);
+            
+            localStorage.setItem('idUser',response.data.user.idUser);
+            console.log("idUser:",localStorage.getItem("idUser"))
+
+            //console.log("token: "+response.data.token);
             localStorage.setItem('token',response.data.token);
             console.log("token:",localStorage.getItem("token"))
             this.navigateToPage('/inicio')

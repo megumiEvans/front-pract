@@ -22,7 +22,7 @@ const NavAdmin = (props) => {
               <NavLink style={{color: 'white'}} href="/adminmov">Movimientos</NavLink>
             </NavItem>
             <NavItem >
-              <NavLink style={{color: 'white'}} href="/divisas">Divisas</NavLink>
+              <NavLink style={{color: 'white'}} href="/logout">Cerrar Sesión</NavLink>
             </NavItem>
           </Nav>          
         </Collapse>

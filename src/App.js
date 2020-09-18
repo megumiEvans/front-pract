@@ -4,11 +4,13 @@ import './App.css';
 import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import Selector from "./components/Selector";
 import Login from "./pages/Login/Login";
+import Logout from "./pages/Logout/logout";
 import Singup from "./pages/Login/Singup";
 import TransactClients from "./pages/Transactions/TransactClients";
 import AdminTransactions from "./pages/Transactions/AdminTransactions";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Users from "./pages/Users/Users";
+import UsersMov from "./pages/Users/UserMov";
 import Currency from "./pages/CurrencyExch/Currency";
 class App extends Component {
   render(){
@@ -23,7 +25,9 @@ class App extends Component {
               {/*<PrivateRoute path="/movimientos" component={TransactClients}/>*/}
               <PrivateRoute path="/adminmov" component={AdminTransactions}/>
               <PrivateRoute path="/users" component={Users}/>
+              <PrivateRoute path="/usersMov" component={UsersMov}/>
               <PrivateRoute path="/divisas" component={Currency}/>
+              <Route exact path="/logout" component={Logout}/>
           </Switch>
         </Router>
       </div>
